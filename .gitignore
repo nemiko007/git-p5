@@ -1,0 +1,15 @@
+# Cargo build artifacts
+/target
+
+# Cargo lock file
+# 環境によって変わることがあるから、一旦無視しとく
+Cargo.lock
+
+# IDE configuration files
+.vscode/
+.idea/
+
+# Environment variables
+.env
+# Firebase service account key
+firebase-service-account.json

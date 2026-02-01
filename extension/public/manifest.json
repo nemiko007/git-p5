@@ -1,0 +1,31 @@
+{
+    "manifest_version": 3,
+    "name": "GitHub Grass Reaper",
+    "version": "1.0",
+    "description": "Don't let your GitHub grass wither.",
+    "permissions": [
+        "storage",
+        "alarms"
+    ],
+    "host_permissions": [
+        "http://localhost:9000/*",
+        "https://*.vercel.app/*"
+    ],
+    "action": {
+        "default_popup": "index.html"
+    },
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ]
+}
