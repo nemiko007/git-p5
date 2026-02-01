@@ -67,26 +67,26 @@ pub struct Monster {
 
 // --- 初期化関数 ---
 
-pub async fn init_firestore() -> FirestoreDb {
+pub async fn init_firestore() -> Result<FirestoreDb, String> {
     dotenvy::dotenv().ok();
     let project_id = env::var("FIRESTORE_PROJECT_ID")
-        .expect("FIRESTORE_PROJECT_ID must be set");
-    
-    // For Vercel, we might want to read service account from an environment variable as a JSON string
-    // if GOOGLE_APPLICATION_CREDENTIALS (the file path) is not suitable or available.
-    // However, the firestore crate's FirestoreDb::new() internally uses gcloud-sdk which looks for 
-    // GOOGLE_APPLICATION_CREDENTIALS environment variable (file path).
+        .map_err(|_| "FIRESTORE_PROJECT_ID must be set".to_string())?;
     
     FirestoreDb::new(&project_id)
         .await
-        .expect("Failed to create Firestore client")
+        .map_err(|e| format!("Failed to create Firestore client: {}", e))
 }
 
 // --- メインのハンドラー関数 ---
 
 pub async fn get_monster_handler(
-    State(db): State<FirestoreDb>,
+    state: State<Option<FirestoreDb>>,
 ) -> impl IntoResponse {
+    let db = match state.0 {
+        Some(db) => db,
+        None => return (StatusCode::INTERNAL_SERVER_ERROR, "Firestore not initialized. Check environment variables.").into_response(),
+    };
+
     let monster: Option<Monster> = match db.fluent()
         .select()
         .by_id_in("monsters")
@@ -105,9 +105,13 @@ pub async fn get_monster_handler(
 }
 
 pub async fn check_handler(
-    State(db): State<FirestoreDb>,
+    state: State<Option<FirestoreDb>>,
     Query(_query): Query<CheckQuery>
 ) -> impl IntoResponse {
+    let db = match state.0 {
+        Some(db) => db,
+        None => return (StatusCode::INTERNAL_SERVER_ERROR, "Firestore not initialized. Check environment variables.").into_response(),
+    };
     // TODO: secretの検証ロジックを後で追加
 
     dotenvy::dotenv().ok();
@@ -199,8 +203,8 @@ pub async fn check_handler(
 
 // アプリケーションのルーターを組み立てる関数
 // State の型も FirestoreDb に変更
-pub fn app_router() -> Router<FirestoreDb> {
-    Router::<FirestoreDb>::new()
+pub fn app_router() -> Router<Option<FirestoreDb>> {
+    Router::<Option<FirestoreDb>>::new()
         .route("/api/check", get(check_handler))
         .route("/api/monster", get(get_monster_handler))
 }

@@ -7,8 +7,8 @@ use git_p5::app_router;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    // Firestoreの初期化
-    let db = git_p5::init_firestore().await;
+    // Firestoreの初期化 (エラー時は None にしてハンドラー側で報告させる)
+    let db = git_p5::init_firestore().await.ok();
     
     // ルーターの構築
     let app = app_router().with_state(db);
