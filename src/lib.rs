@@ -72,6 +72,11 @@ pub async fn init_firestore() -> FirestoreDb {
     let project_id = env::var("FIRESTORE_PROJECT_ID")
         .expect("FIRESTORE_PROJECT_ID must be set");
     
+    // For Vercel, we might want to read service account from an environment variable as a JSON string
+    // if GOOGLE_APPLICATION_CREDENTIALS (the file path) is not suitable or available.
+    // However, the firestore crate's FirestoreDb::new() internally uses gcloud-sdk which looks for 
+    // GOOGLE_APPLICATION_CREDENTIALS environment variable (file path).
+    
     FirestoreDb::new(&project_id)
         .await
         .expect("Failed to create Firestore client")
