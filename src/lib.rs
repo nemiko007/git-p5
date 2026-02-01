@@ -80,11 +80,11 @@ pub async fn init_firestore() -> Result<FirestoreDb, String> {
 // --- メインのハンドラー関数 ---
 
 pub async fn get_monster_handler(
-    state: State<Option<FirestoreDb>>,
+    state: State<Result<FirestoreDb, String>>,
 ) -> impl IntoResponse {
     let db = match state.0 {
-        Some(db) => db,
-        None => return (StatusCode::INTERNAL_SERVER_ERROR, "Firestore not initialized. Check environment variables.").into_response(),
+        Ok(db) => db,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, format!("Firestore not initialized: {}", e)).into_response(),
     };
 
     let monster: Option<Monster> = match db.fluent()
@@ -105,12 +105,12 @@ pub async fn get_monster_handler(
 }
 
 pub async fn check_handler(
-    state: State<Option<FirestoreDb>>,
+    state: State<Result<FirestoreDb, String>>,
     Query(_query): Query<CheckQuery>
 ) -> impl IntoResponse {
     let db = match state.0 {
-        Some(db) => db,
-        None => return (StatusCode::INTERNAL_SERVER_ERROR, "Firestore not initialized. Check environment variables.").into_response(),
+        Ok(db) => db,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, format!("Firestore not initialized: {}", e)).into_response(),
     };
     // TODO: secretの検証ロジックを後で追加
 
@@ -203,8 +203,8 @@ pub async fn check_handler(
 
 // アプリケーションのルーターを組み立てる関数
 // State の型も FirestoreDb に変更
-pub fn app_router() -> Router<Option<FirestoreDb>> {
-    Router::<Option<FirestoreDb>>::new()
+pub fn app_router() -> Router<Result<FirestoreDb, String>> {
+    Router::<Result<FirestoreDb, String>>::new()
         .route("/api/check", get(check_handler))
         .route("/api/monster", get(get_monster_handler))
 }

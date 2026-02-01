@@ -7,11 +7,11 @@ use git_p5::app_router;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    // Firestoreの初期化 (エラー時は None にしてハンドラー側で報告させる)
-    let db = git_p5::init_firestore().await.ok();
+    // Firestoreの初期化
+    let db_res = git_p5::init_firestore().await;
     
     // ルーターの構築
-    let app = app_router().with_state(db);
+    let app = app_router().with_state(db_res);
     
     // Vercelランタイムの期待するシグネチャに合わせて実行
     run(service_fn(move |(_state, req): (vercel_runtime::AppState, Request)| {
