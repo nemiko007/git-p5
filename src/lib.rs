@@ -1,7 +1,7 @@
 use axum::{
-    routing::get,
+    routing::{get, any},
     Router,
-    http::{StatusCode},
+    http::StatusCode,
     extract::{Query, State},
     response::{IntoResponse, Json},
 };
@@ -216,6 +216,6 @@ pub async fn check_handler(
 // State の型も FirestoreDb に変更
 pub fn app_router() -> Router<Result<FirestoreDb, String>> {
     Router::<Result<FirestoreDb, String>>::new()
-        .route("/api/check", get(check_handler))
-        .route("/api/monster", get(get_monster_handler))
+        .route("/api/check", any(check_handler))
+        .route("/api/monster", any(get_monster_handler))
 }

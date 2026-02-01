@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:9000/api/monster'; // Change this to your Vercel URL later
+const API_URL = 'https://git-p5.vercel.app/api/monster'; // Change this to your Vercel URL later
 
 async function fetchStatus() {
     try {
