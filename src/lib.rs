@@ -71,6 +71,17 @@ pub async fn init_firestore() -> Result<FirestoreDb, String> {
     dotenvy::dotenv().ok();
     let project_id = env::var("FIRESTORE_PROJECT_ID")
         .map_err(|_| "FIRESTORE_PROJECT_ID must be set".to_string())?;
+
+    // Vercelなどで環境変数にJSONの中身を直接入れている場合への対応
+    if let Ok(creds) = env::var("GOOGLE_APPLICATION_CREDENTIALS") {
+        if creds.trim().starts_with('{') {
+            let tmp_path = "/tmp/service-account.json";
+            std::fs::write(tmp_path, &creds)
+                .map_err(|e| format!("Failed to write credentials to /tmp: {}", e))?;
+            // 環境変数を一時ファイルのパスに書き換える
+            env::set_var("GOOGLE_APPLICATION_CREDENTIALS", tmp_path);
+        }
+    }
     
     FirestoreDb::new(&project_id)
         .await
